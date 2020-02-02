@@ -1,10 +1,10 @@
-#### auto.ru node.js test scraper : puppeteer, cheerio
+### auto.ru node.js test scraper : puppeteer, cheerio
 
 ##### Clone this repo
 ##### Build docker image
 
 ```bash
-cd 
+cd parser-autoru
 docker build -t autoru .
 ```
 

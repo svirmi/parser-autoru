@@ -1,17 +1,23 @@
-const puppeteer = require('puppeteer');
-import cookie from "./helpers/cookie";
+const cheerio = require('cheerio');
+import chalk from "chalk";
+
+import {arrayFromLength} from "./helpers/common";
+import {getPageContent} from "./helpers/puppeteer";
+
+const SITE = 'https://auto.ru/catalog/cars/all/?page_num=';
+const pages = 2;
 
 (async () => {
         try {
-            const browser = await puppeteer.launch({args: ['--no-sandbox']});
-            const page = await browser.newPage();
-            await page.setCookie(...cookie);
-            await page.goto('https://auto.ru/catalog/cars/all/?page_num=1', {waitUntil: 'networkidle2'});
-            await page.waitFor(1000);
-            await page.screenshot({path: './data/example.png'});
-            await browser.close();
+            for(const page of arrayFromLength(pages)){
+                const url = `${SITE}${page}`;
+                const pageContent = await getPageContent(url);
 
+                console.log(pageContent);
+
+            }
         } catch (err) {
+            console.log(chalk.red('An error occured\n'));
             console.error(err);
         }
 })();
