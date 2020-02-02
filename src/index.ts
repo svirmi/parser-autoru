@@ -2,19 +2,20 @@ const cheerio = require('cheerio');
 import chalk from "chalk";
 import {slugify} from "transliteration";
 
+import listItemsHandler, {DataItem} from "./handlers/listItemsHandler";
 import {arrayFromLength} from "./helpers/common";
 import {getPageContent} from "./helpers/puppeteer";
 
 const SITE = 'https://auto.ru/catalog/cars/all/?page_num=';
 const pages = 2;
 
+const carsItems: DataItem[] = [];
+
 (async () => {
         try {
             for(const page of arrayFromLength(pages)){
                 const url = `${SITE}${page}`;
                 const pageContent = await getPageContent(url);
-
-                const carsItems: Array<object> = [];
 
                 const $ = cheerio.load(pageContent);
 
@@ -28,7 +29,7 @@ const pages = 2;
                     });
                 });
 
-                console.log(carsItems);
+                await listItemsHandler(carsItems);
 
             }
         } catch (err) {
