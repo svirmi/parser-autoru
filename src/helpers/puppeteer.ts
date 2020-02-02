@@ -12,7 +12,7 @@ export const LAUNCH_PUPPETEER_OPTS = {
 export const PAGE_PUPPETEER_OPTS = {
   networkIdle2Timeout: 5000,
   waitUntil: 'networkidle2',
-  timeout: 3000000
+  timeout: 30000
 };
 
 export async function getPageContent(url: string) {

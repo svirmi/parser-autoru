@@ -3,9 +3,12 @@ import chalk from "chalk";
 
 import {getPageContent} from "../helpers/puppeteer";
 import {formatPrice, formatPeriod} from "../helpers/common";
+import saveData from "./saver";
 
 export interface DataItem {
-    title: string;     url: string;     code: string;
+    title: string;
+    url: string;
+    code: string;
 }
 
 type DataItems = DataItem[];
@@ -37,7 +40,8 @@ export default async function listItemsHandler(data: DataItems) {
                 priceNew = null;
             }
 
-            console.log({
+            await saveData({
+                ...initialData,
                 priceNew,
                 priceWithMileage,
                 period
@@ -47,8 +51,4 @@ export default async function listItemsHandler(data: DataItems) {
     } catch (err) {
         throw err;
     }
-}
-
-async function saveData(data: DataItems) {
-
 }
