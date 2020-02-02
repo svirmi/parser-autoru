@@ -1,5 +1,6 @@
 const cheerio = require('cheerio');
 import chalk from "chalk";
+import {slugify} from "transliteration";
 
 import {arrayFromLength} from "./helpers/common";
 import {getPageContent} from "./helpers/puppeteer";
@@ -13,7 +14,21 @@ const pages = 2;
                 const url = `${SITE}${page}`;
                 const pageContent = await getPageContent(url);
 
-                console.log(pageContent);
+                const carsItems: Array<object> = [];
+
+                const $ = cheerio.load(pageContent);
+
+                $('.mosaic__title').each((i: number, header: string) => {
+                    const url = $(header).attr('href');
+                    const title = $(header).text();
+                    carsItems.push({
+                        title,
+                        url,
+                        code: slugify(title)
+                    });
+                });
+
+                console.log(carsItems);
 
             }
         } catch (err) {
