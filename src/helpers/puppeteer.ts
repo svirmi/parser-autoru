@@ -17,6 +17,7 @@ export const PAGE_PUPPETEER_OPTS = {
 
 export async function getPageContent(url: string) {
     try {
+        // launch browser for each page request
         const browser = await puppeteer.launch(LAUNCH_PUPPETEER_OPTS);
         const page = await browser.newPage();
         await page.setCookie(...cookie);
