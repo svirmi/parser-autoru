@@ -4,36 +4,73 @@ import {slugify} from "transliteration";
 
 import listItemsHandler, {DataItem} from "./handlers/listItemsHandler";
 import {arrayFromLength} from "./helpers/common";
-import {getPageContent} from "./helpers/puppeteer";
+import {PuppeteerHandler} from "./helpers/puppeteer";
+var queue = require("async/queue");
 
 const SITE = 'https://auto.ru/catalog/cars/all/?page_num=';
-const pages = 2;
+const pages = 4;
+const concurrency = 10;
+const startTime:any = new Date();
 
-const carsItems: DataItem[] = [];
+export const p = new PuppeteerHandler();
 
-(async () => {
-        try {
-            for(const page of arrayFromLength(pages)){
-                const url = `${SITE}${page}`;
-                const pageContent = await getPageContent(url);
+export const taskQueue = queue(async (task:any, done:any) => {
+    try {
+        await task();
+        console.log(chalk.bold.magenta('Task completed, task left: ' + taskQueue.length() + '\n'));
+        done();
+    } catch (err) {
+        throw err;
+    }
+}, concurrency);
 
-                const $ = cheerio.load(pageContent);
+taskQueue.drain(function () {
+    const endTime:any = new Date();
+    console.log(chalk.green.bold(`All done . [${(endTime - startTime) / 1000}s]\n`));
+    p.closeBrowser();
+    process.exit();
+});
 
-                $('.mosaic__title').each((i: number, header: string) => {
-                    const url = $(header).attr('href');
-                    const title = $(header).text();
-                    carsItems.push({
-                        title,
-                        url,
-                        code: slugify(title)
-                    });
-                });
+(function main() {
+    arrayFromLength(pages).forEach(page => {
+        const url = `${SITE}${page}`;
 
-                await listItemsHandler(carsItems);
-
+        taskQueue.push(
+            () => listPageHandler(url),
+            (err:any) => {
+                if(err) {
+                    console.log(err);
+                    throw new Error('Error getting data from page ' + url);
+                }
+                console.log(chalk.green('Page ' + url + ' done\n'));
             }
-        } catch (err) {
-            console.log(chalk.red('An error occured\n'));
-            console.error(err);
-        }
+        );
+    });
 })();
+
+
+async function listPageHandler(url:string) {
+    try {
+        const carsItems: DataItem[] = [];
+
+        const pageContent = await p.getPageContent(url);
+        const $ = cheerio.load(pageContent);
+
+
+        $('.mosaic__title').each((i: number, header: string) => {
+            const url = $(header).attr('href');
+            const title = $(header).text();
+            carsItems.push({
+                title,
+                url,
+                code: slugify(title)
+            });
+        });
+
+        listItemsHandler(carsItems);
+
+    } catch (err) {
+        console.log(chalk.red('An error occured\n'));
+        console.error(err);
+    }
+}

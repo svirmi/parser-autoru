@@ -1,3 +1,5 @@
+import {AnyAaaaRecord} from "dns";
+
 const puppeteer = require('puppeteer');
 import cookie from "./cookie";
 
@@ -15,20 +17,34 @@ export const PAGE_PUPPETEER_OPTS = {
   timeout: 30000
 };
 
-export async function getPageContent(url: string) {
-    try {
-        // launch browser for each page request
-        const browser = await puppeteer.launch(LAUNCH_PUPPETEER_OPTS);
-        const page = await browser.newPage();
-        await page.setCookie(...cookie);
+export class PuppeteerHandler {
+    browser: any;
 
-        await page.goto(url, PAGE_PUPPETEER_OPTS);
-        const content = await page.content();
-        browser.close();
+    constructor() {
+        this.browser = null;
+    }
+    async initBrowser() {
+        this.browser = await puppeteer.launch(LAUNCH_PUPPETEER_OPTS);
+    }
+    closeBrowser() {
+        this.browser.close();
+    }
+    async getPageContent(url: string) {
 
-        return content;
+        if(!this.browser) {
+            await this.initBrowser();
+        }
 
-    } catch (err) {
-        throw err;
+        try {
+            const page = await this.browser.newPage();
+            await page.setCookie(...cookie);
+            await page.goto(url, PAGE_PUPPETEER_OPTS);
+            const content = await page.content();
+
+            return content;
+
+        } catch (err) {
+            throw err;
+        }
     }
 }
